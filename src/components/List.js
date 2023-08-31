@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
@@ -6,6 +6,7 @@ import { addItem, updateItemOrder, updateSections } from '../redux/actions';
 import './List.css';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { v4 as uuidv4 } from 'uuid';
+import { AiOutlineDrag } from 'react-icons/ai'
 
 const List = () => {
   const [showInput, setShowInput] = useState(false);
@@ -15,9 +16,23 @@ const List = () => {
   const dispatch = useDispatch();
   const items = useSelector((state) => state.items);
   const sections = useSelector((state) => state.sections);
+  const newItemInputRef = useRef(null);
+  const newSectionInputRef = useRef(null);
 
   const handleNewItemClick = () => {
     setShowInput(true);
+  };
+
+  const handleInputKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleInputSubmit();
+    }
+  };
+
+  const handleSectionInputKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleSectionInputSubmit();
+    }
   };
 
   const handleInputChange = (event) => {
@@ -84,101 +99,126 @@ const List = () => {
   };
 
   return (
-    <div>
-      <h1 className='my-5 text-center'>Drag and Drop Task</h1>
-      <div className='mx-5'>
-        <Button onClick={handleNewItemClick} variant='success' className='fs-3 fw-bold btn btn-sm'>
-          Add New List Item
-        </Button>
-        {showInput && (
-          <div>
-            <div className='my-3 mx-1 row'>
-            <input
-              type='text'
-              placeholder='Enter new item'
-              value={newItemText}
-              className='form-control h-100 w-50 border border-dark'
-              onChange={handleInputChange}
-            />
-            </div>
-            <Button onClick={handleInputSubmit} variant='primary'>
-              Create Item
-            </Button>
-          </div>
-        )}
-      </div>
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="items" type="ITEM">
-          {(provided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps} className='item-container'>
-              {items.map((item, index) => (
-                <Draggable key={item.id} draggableId={item.id} index={index}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className='item-box mx-5 fs-5'
-                    >
-                      {item.text}
+    <div className='bg-warning'>
+      <div className='card border border-0'>
+        <h1 className='my-5 text-center'>Drag and Drop Task</h1>
+        <div className='card-body mx-5'>
+          <div className='row'>
+
+            <DragDropContext onDragEnd={handleDragEnd}>
+
+              <div className='col-6 '>
+                <div className=''>
+                  <Button onClick={handleNewItemClick} variant='success' className='fs-3 fw-bold btn btn-sm'>
+                    Add New List Item
+                  </Button>
+                  {showInput && (
+                    <div>
+                      <div className='my-3 row'>
+                        <input
+                          type='text'
+                          placeholder='Enter new item'
+                          value={newItemText}
+                          className='form-control h-100 w-50 border border-dark'
+                          onChange={handleInputChange}
+                          onKeyDown={handleInputKeyDown} // Add this line
+                          ref={newItemInputRef} // Add this line                      
+                        />
+                      </div>
+                      <Button onClick={handleInputSubmit} variant='primary'>
+                        Create Item
+                      </Button>
                     </div>
                   )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-        {sections.map((section, sectionIndex) => (
-          <Droppable key={section.id} droppableId={section.id} type="ITEM">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className='section-box bg-white text-dark p-3 mt-4 border border-dark mx-5'
-              >
-                <h2 className='h4 mb-3'>{section.title}</h2>
-                {section.items.map((item, itemIndex) => (
-                  <Draggable key={item.id} draggableId={item.id} index={itemIndex}>
+                </div>
+
+                <Droppable droppableId="items" type="ITEM">
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className='item-container'>
+                      {items.map((item, index) => (
+                        <Draggable key={item.id} draggableId={item.id} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className='item-box mx-1 fs-5'
+                            >
+                              {item.text}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+
+
+              <div className='col-6'>
+                <Button onClick={handleAddSectionClick} variant='success' className='fs-3 fw-bold'>
+                  Add New Section
+                </Button>
+                {showSectionInput && (
+                  <div className="mt-3">
+                    <div className='row my-3 mx-1'>
+                      <input
+                        type='text'
+                        placeholder='Enter new section name'
+                        value={newSectionText}
+                        className='form-control h-100 w-50 border border-dark'
+                        onChange={handleSectionInputChange}
+                        onKeyDown={handleSectionInputKeyDown} // Add this line
+                        ref={newSectionInputRef} // Add this line
+
+                      />
+                    </div>
+                    <div>
+                      <Button onClick={handleSectionInputSubmit} variant='primary'>
+                        Create Section
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {sections.map((section, sectionIndex) => (
+                  <Droppable key={section.id} droppableId={section.id} type="ITEM">
                     {(provided) => (
                       <div
                         ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className='item-box'
+                        {...provided.droppableProps}
+                        className='section-box bg-white text-dark p-3 mt-4 border border-dark section-box'
                       >
-                        {item.text}
+                        <h2 className='h4 mb-3'>{section.title}</h2>
+                        {section.items.map((item, itemIndex) => (
+                          <Draggable key={item.id} draggableId={item.id} index={itemIndex}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className='item-box'
+                              >
+                                <div className="item-content">{item.text}</div>
+                                <div className="draggable-symbol" {...provided.dragHandleProps}>
+                                  <AiOutlineDrag />
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
                       </div>
                     )}
-                  </Draggable>
+                  </Droppable>
                 ))}
-                {provided.placeholder}
               </div>
-            )}
-          </Droppable>
-        ))}
-      </DragDropContext>
-      <Button onClick={handleAddSectionClick} variant='success' className='fs-3 fw-bold mt-5 mx-5'>
-        Add New Section
-      </Button>
-      {showSectionInput && (
-        <div className="mt-3 mx-5">
-          <div className='row my-3 mx-1'>
-          <input
-            type='text'
-            placeholder='Enter new section name'
-            value={newSectionText}
-            className='form-control h-100 w-50 border border-dark'
-            onChange={handleSectionInputChange}
-          />
-          </div>
-          <div>
-          <Button onClick={handleSectionInputSubmit} variant='primary'>
-            Create Section
-          </Button>
+
+            </DragDropContext>
+
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
